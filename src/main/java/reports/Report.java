@@ -25,8 +25,7 @@ public abstract class Report {
     public void readFileContentsOrNull() throws IOException {
         // read items from file
         fileContents = Files.readString(Path.of(pathToReport));
-        pathToReport = pathToReport;
         isReportFileRead = true;
     }
-    public abstract String getReport() throws OperationNotSupportedException;
+    public abstract String getReportText() throws OperationNotSupportedException;
 }

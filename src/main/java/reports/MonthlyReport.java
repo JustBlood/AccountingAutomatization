@@ -1,12 +1,10 @@
 package reports;
 
-import jdk.jshell.spi.ExecutionControl;
-
 import javax.naming.OperationNotSupportedException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.time.Month;
+import java.time.format.TextStyle;
+import java.util.*;
 
 public class MonthlyReport extends Report {
     public static class Item {
@@ -21,42 +19,36 @@ public class MonthlyReport extends Report {
 
         @Override
         public String toString() {
-            return String.format("Запись %s, цена/ед: %s, кол-во: %s, общая стоимость: %s",
-                    name, priceOfOne, quantity, calculateSum());
+            return String.format("%s, абсолютная сумма: %s",
+                    name, Math.abs(calculateSum()));
         }
     }
     private int month;
     private int year;
     private List<Item> items;
-    private Item mostExpensive;
-    private Item cheaper;
+    private Item mostProfitable;
+    private Item mostUnprofitable;
 
     public MonthlyReport(String path) {
         super(path);
         items = new ArrayList<>();
     }
-    private void createReport() throws OperationNotSupportedException {
+    public void readReport() throws OperationNotSupportedException {
         try {
             readFileContentsOrNull();
         } catch (IOException e) {
             throw new OperationNotSupportedException("Ошибка при чтении файла, проверьте путь.");
         }
         serializeReport();
-        try {
-            calculateMaxMinPriceFromData();
-        } catch (OperationNotSupportedException e) {
-            throw new OperationNotSupportedException("Ошибка при подсчёте максимальной и минимальной транзакции." +
-                    "Сначала необходимо сериализовать данные");
-        }
     }
 
     //region getters
-    public Item getMostExpensive() {
-        return mostExpensive;
+    public Item getMostProfitable() {
+        return mostProfitable;
     }
 
-    public Item getCheaper() {
-        return cheaper;
+    public Item getMostUnprofitable() {
+        return mostUnprofitable;
     }
 
     public int getMonth() {
@@ -66,16 +58,35 @@ public class MonthlyReport extends Report {
     public int getYear() {
         return year;
     }
+    public int getAmount() {
+        int amount = 0;
+        for (var item : items) {
+            amount += item.calculateSum();
+        }
+        return amount;
+    }
     //endregion
 
     /**
-     * Need @createReport() method before this called.
      * @return String, which describe this month report
      */
-    public String getReport() throws OperationNotSupportedException {
-        createReport();
-        return null;
+    public String getReportText() throws OperationNotSupportedException {
+        if (Objects.isNull(mostProfitable) || Objects.isNull(mostUnprofitable)) {
+            try {
+                calculateMaxMinPriceFromData();
+            } catch (OperationNotSupportedException e) {
+                throw new OperationNotSupportedException("Ошибка при подсчёте максимальной и минимальной транзакции." +
+                        "Сначала необходимо сериализовать данные");
+            }
+        }
+        String monthName = Month.of(month).getDisplayName(TextStyle.FULL_STANDALONE, Locale.of("ru"));
+        return String.format("""
+                %s, %s год:
+                Самый прибыльный товар: %s,
+                Самая большая трата: %s
+                """, monthName, year, mostProfitable, mostUnprofitable);
     }
+
     @Override
     protected void serializeReport() throws NumberFormatException {
         if (!isReportFileRead) { return; }
@@ -105,15 +116,15 @@ public class MonthlyReport extends Report {
         }
         for (var item : items) {
             int sum = item.calculateSum();
-            if (Objects.isNull(mostExpensive) || Objects.isNull(cheaper)) {
-                mostExpensive = item;
-                cheaper = item;
+            if (Objects.isNull(mostProfitable) || Objects.isNull(mostUnprofitable)) {
+                mostProfitable = item;
+                mostUnprofitable = item;
             }
-            if (sum > mostExpensive.calculateSum()) {
-                mostExpensive = item;
+            if (sum > mostProfitable.calculateSum()) {
+                mostProfitable = item;
             }
-            if (sum < cheaper.calculateSum()) {
-                cheaper = item;
+            if (sum < mostUnprofitable.calculateSum()) {
+                mostUnprofitable = item;
             }
         }
     }
@@ -124,7 +135,7 @@ public class MonthlyReport extends Report {
         item.name = itemValues[0];
         if (!itemValues[1].equalsIgnoreCase("true")
         && !itemValues[1].equalsIgnoreCase("false")) {
-            throw new NumberFormatException("isExpense not boolean value in file");
+            throw new NumberFormatException("isExpense not a boolean value in file");
         }
         item.isExpense = Boolean.parseBoolean(itemValues[1]);
         item.quantity = Integer.parseInt(itemValues[2]);
