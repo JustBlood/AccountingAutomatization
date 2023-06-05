@@ -8,6 +8,12 @@ import java.util.*;
 
 public class MonthlyReport extends Report {
     public static class Item {
+        public Item(String name, int quantity, int priceOfOne, boolean isExpense) {
+            this.name = name;
+            this.quantity = quantity;
+            this.priceOfOne = priceOfOne;
+            this.isExpense = isExpense;
+        }
         private boolean isExpense;
         private String name;
         private int quantity;
@@ -131,15 +137,14 @@ public class MonthlyReport extends Report {
 
     private Item serializeItem(String[] itemValues) {
         // item_name,is_expense,quantity,sum_of_one
-        Item item = new Item();
-        item.name = itemValues[0];
+        String name = itemValues[0];
         if (!itemValues[1].equalsIgnoreCase("true")
         && !itemValues[1].equalsIgnoreCase("false")) {
             throw new NumberFormatException("isExpense not a boolean value in file");
         }
-        item.isExpense = Boolean.parseBoolean(itemValues[1]);
-        item.quantity = Integer.parseInt(itemValues[2]);
-        item.priceOfOne = Integer.parseInt(itemValues[3]);
-        return item; // serialize next Item
+        boolean isExpense = Boolean.parseBoolean(itemValues[1]);
+        int quantity = Integer.parseInt(itemValues[2]);
+        int priceOfOne = Integer.parseInt(itemValues[3]);
+        return new Item(name, quantity, priceOfOne, isExpense);
     }
 }
