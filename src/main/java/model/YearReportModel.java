@@ -25,6 +25,10 @@ public class YearReportModel {
         public int getProfit() {
             return profit;
         }
+
+        public int getRealProfit() {
+            return profit - expense;
+        }
     }
     private final int year;
     private final List<MonthInfo> monthlyInformation;
