@@ -1,4 +1,4 @@
-package reports;
+package model;
 
 import javax.naming.OperationNotSupportedException;
 import java.io.IOException;
@@ -8,23 +8,23 @@ import java.nio.file.Path;
 public abstract class Report {
     protected boolean isReportFileRead;
     private String fileContents;
-    private String pathToReport;
+    private String pathToReportFile;
 
     public Report(String pathToReport) {
-        this.pathToReport = pathToReport;
+        this.pathToReportFile = pathToReport;
     }
 
-    public String getPathToReport() {
-        return pathToReport;
+    public String getPathToReportFile() {
+        return pathToReportFile;
     }
 
     protected String getFileContents() {
         return fileContents;
     }
     protected abstract void serializeReport();
-    public void readFileContentsOrNull() throws IOException {
+    protected void readFileContentsOrNull() throws IOException {
         // read items from file
-        fileContents = Files.readString(Path.of(pathToReport));
+        fileContents = Files.readString(Path.of(pathToReportFile));
         isReportFileRead = true;
     }
     public abstract String getReportText() throws OperationNotSupportedException;

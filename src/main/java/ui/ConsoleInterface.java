@@ -1,14 +1,8 @@
-package app;
+package ui;
 
-import reports.MonthlyReport;
-import reports.ReportsManager;
+import bl.ReportsManager;
 
-import javax.naming.OperationNotSupportedException;
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 public class ConsoleInterface {
     private static final File folder = new File("src\\main\\resources\\");

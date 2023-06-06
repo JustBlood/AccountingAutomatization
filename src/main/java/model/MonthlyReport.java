@@ -1,4 +1,4 @@
-package reports;
+package model;
 
 import javax.naming.OperationNotSupportedException;
 import java.io.IOException;
@@ -14,10 +14,10 @@ public class MonthlyReport extends Report {
             this.priceOfOne = priceOfOne;
             this.isExpense = isExpense;
         }
-        private boolean isExpense;
-        private String name;
-        private int quantity;
-        private int priceOfOne;
+        private final boolean isExpense;
+        private final String name;
+        private final int quantity;
+        private final int priceOfOne;
 
         public int calculateSum() {
             return quantity * priceOfOne * (isExpense ? -1 : 1);
@@ -71,6 +71,25 @@ public class MonthlyReport extends Report {
         }
         return amount;
     }
+    public int getAllExpenses() {
+        int expenses = 0;
+        for (var item : items) {
+            if (item.isExpense) {
+                expenses -= item.calculateSum();
+            }
+        }
+        return expenses;
+    }
+
+    public int getAllProfits() {
+        int profits = 0;
+        for (var item : items) {
+            if (!item.isExpense) {
+                profits += item.calculateSum();
+            }
+        }
+        return profits;
+    }
     //endregion
 
     /**
@@ -98,7 +117,7 @@ public class MonthlyReport extends Report {
         if (!isReportFileRead) { return; }
 
         String[] lines = getFileContents().split("\n");
-        String[] path = getPathToReport().split("\\\\");
+        String[] path = getPathToReportFile().split("\\\\");
         String fileName = path[path.length - 1];
         month = Integer.parseInt(fileName.substring(6,8));
         year = Integer.parseInt(fileName.substring(2,6));
