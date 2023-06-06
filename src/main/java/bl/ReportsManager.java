@@ -11,79 +11,20 @@ import java.time.format.TextStyle;
 import java.util.*;
 
 public class ReportsManager {
-    public static class Operation {
-        public Operation(String name, int sum) {
-            this.name = name;
-            this.sum = sum;
-        }
-
-        private final String name;
-        private final int sum;
-
-        public int getSum() {
-            return sum;
-        }
-
-        public String getName() {
-            return name;
-        }
+    public record Operation(String name, int sum) {
     }
-    public static class MonthReportInformation {
-        public MonthReportInformation(String month, Operation mostProfitable, Operation mostUnprofitable) {
-            this.month = month;
-            this.mostProfitable = mostProfitable;
-            this.mostUnprofitable = mostUnprofitable;
-        }
 
-        private final String month;
-        private final Operation mostProfitable;
-        private final Operation mostUnprofitable;
-
-        public String getMonth() {
-            return month;
-        }
-
-        public Operation getMostProfitable() {
-            return mostProfitable;
-        }
-
-        public Operation getMostUnprofitable() {
-            return mostUnprofitable;
-        }
+    public record MonthReportInformation(String month, Operation mostProfitable, Operation mostUnprofitable) {
     }
-    public static class YearReportInformation {
-        private final int year;
-        private final List<Operation> operationsProfit;
-        private final double averageYearlyProfit;
-        private final double averageYearlyExpense;
 
-        public YearReportInformation(int year, List<Operation> operationsProfit, double averageYearlyProfit,
-                                     double averageYearlyExpense) {
+    public record YearReportInformation(int year, List<Operation> operationsProfit, double averageYearlyProfit,
+                                        double averageYearlyExpense) {
+        public YearReportInformation {
             if (operationsProfit.size() > 12) {
                 throw new IllegalArgumentException("OperationsProfit contains maximum 12 values - 1 for month in year");
             }
-            this.year = year;
-            this.operationsProfit = operationsProfit;
-            this.averageYearlyProfit = averageYearlyProfit;
-            this.averageYearlyExpense = averageYearlyExpense;
         }
-
-        public int getYear() {
-            return year;
         }
-
-        public List<Operation> getOperationsProfit() {
-            return operationsProfit;
-        }
-
-        public double getAverageYearlyProfit() {
-            return averageYearlyProfit;
-        }
-
-        public double getAverageYearlyExpense() {
-            return averageYearlyExpense;
-        }
-    }
     private ReportsModel reportsModel;
     private boolean isMonthlyReportsRead;
     private boolean isYearReportRead;
@@ -125,7 +66,6 @@ public class ReportsManager {
             throw new IOException("There is no files in directory.");
         }
 
-        int i = 0;
         for (var file : Objects.requireNonNull(folder.listFiles())) {
             if (file.getName().contains("y.")) {
                 try {
@@ -146,7 +86,7 @@ public class ReportsManager {
     public List<MonthReportModel> findReportsMistake() {
         // comparing monthly reports with year reports
         List<MonthReportModel> mistakesMonths = new ArrayList<>();
-        var yearReportByMonths = reportsModel.getYearReport().getMonthlyInformation();
+        var yearReportByMonths = reportsModel.getYearReport().monthlyInformation();
         var monthlyReports = reportsModel.getMonthlyReports();
         for (int i = 0; i < monthlyReports.length; i++) {
             if (yearReportByMonths.size() <= i && !Objects.isNull(monthlyReports[i])) {
@@ -156,7 +96,7 @@ public class ReportsManager {
                 continue;
             }
 
-            var operations = monthlyReports[i].getBalanceOperations();
+            var operations = monthlyReports[i].balanceOperations();
             int monthProfit = 0;
             int monthExpense = 0;
             for (var operation : operations) {
@@ -169,8 +109,8 @@ public class ReportsManager {
             }
 
             var monthInfoByYear = yearReportByMonths.get(i);
-            if (monthInfoByYear.getExpense() != monthExpense
-            || monthInfoByYear.getProfit() != monthProfit) {
+            if (monthInfoByYear.expense() != monthExpense
+            || monthInfoByYear.profit() != monthProfit) {
                 mistakesMonths.add(monthlyReports[i]);
             }
         }
@@ -184,29 +124,29 @@ public class ReportsManager {
             if (Objects.isNull(monthlyReport)) {
                 continue;
             }
-            String month = getMonthName(monthlyReport.getMonth());
-            var profitable = monthlyReport.getMostProfitable();
-            var unprofitable = monthlyReport.getMostUnprofitable();
-            Operation mostProfitable = new Operation(profitable.getName(), profitable.getRealProfit());
-            Operation mostUnprofitable = new Operation(unprofitable.getName(), Math.abs(unprofitable.getRealProfit()));
+            String month = getMonthName(monthlyReport.month());
+            var profitable = monthlyReport.mostProfitable();
+            var unprofitable = monthlyReport.mostUnprofitable();
+            Operation mostProfitable = new Operation(profitable.name(), profitable.getRealProfit());
+            Operation mostUnprofitable = new Operation(unprofitable.name(), Math.abs(unprofitable.getRealProfit()));
             monthlyReportsInformation.add(new MonthReportInformation(month, mostProfitable, mostUnprofitable));
         }
         return monthlyReportsInformation;
     }
     public YearReportInformation getYearReportInformation() {
-        var monthsInfo = reportsModel.getYearReport().getMonthlyInformation();
+        var monthsInfo = reportsModel.getYearReport().monthlyInformation();
         double averageProfit = 0;
         double averageExpense = 0;
         List<Operation> monthOperationsProfit = new ArrayList<>();
         for (var monthInfo : monthsInfo) {
-            averageExpense += monthInfo.getExpense();
-            averageProfit += monthInfo.getProfit();
-            monthOperationsProfit.add(new Operation(getMonthName(monthInfo.getMonth()), monthInfo.getRealProfit()));
+            averageExpense += monthInfo.expense();
+            averageProfit += monthInfo.profit();
+            monthOperationsProfit.add(new Operation(getMonthName(monthInfo.month()), monthInfo.getRealProfit()));
         }
         averageExpense /= monthsInfo.size();
         averageProfit /= monthsInfo.size();
         return new YearReportInformation(
-                reportsModel.getYearReport().getYear(),
+                reportsModel.getYearReport().year(),
                 monthOperationsProfit,
                 averageProfit,
                 averageExpense);

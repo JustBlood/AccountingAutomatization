@@ -2,7 +2,6 @@ package ui;
 
 import bl.ReportsManager;
 
-import javax.naming.OperationNotSupportedException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
@@ -15,7 +14,6 @@ public class ConsoleInterface {
     private static final Scanner sc = new Scanner(System.in);
     private static final File folder = new File("src\\main\\resources\\");
     private static final ReportsManager reportsManager = new ReportsManager(folder);
-    //todo: сделать консольное отображение
     public static void main(String[] args) {
         printStartMessage();
         while (true) {
@@ -25,19 +23,13 @@ public class ConsoleInterface {
                 continue;
             }
             switch (command) {
-                case ReadMonthReports -> {
-                    readMonthlyReports();
-                } case ReadYearReport -> {
-                    readYearReport();
-                } case CompareReports -> {
-                    compareReports();
-                } case ShowMonthsInfo -> {
-                    showMonthsInfo();
-                } case  ShowYearInfo -> {
-                    showYearInfo();
-                } case Help -> {
-                    printHelpMessage();
-                } case Exit -> {
+                case ReadMonthReports -> readMonthlyReports();
+                case ReadYearReport -> readYearReport();
+                case CompareReports -> compareReports();
+                case ShowMonthsInfo -> showMonthsInfo();
+                case  ShowYearInfo -> showYearInfo();
+                case Help -> printHelpMessage();
+                case Exit -> {
                     System.out.println("Хорошего дня!");
                     System.exit(0);
                 }
@@ -72,19 +64,19 @@ public class ConsoleInterface {
         }
 
         var yearReport = reportsManager.getYearReportInformation();
-        System.out.println(yearReport.getYear() + " год.");
-        for (var monthInfo : yearReport.getOperationsProfit()) {
+        System.out.println(yearReport.year() + " год.");
+        for (var monthInfo : yearReport.operationsProfit()) {
             System.out.printf("""
                     🗓 Месяц: %s, прибыль: %s
-                    """, monthInfo.getName(), monthInfo.getSum());
+                    """, monthInfo.name(), monthInfo.sum());
         }
         System.out.printf("""
                 
                 📉 Средний расход в месяц: %.2f
-                """, yearReport.getAverageYearlyExpense());
+                """, yearReport.averageYearlyExpense());
         System.out.printf("""
                 📈 Средний доход в месяц: %.2f
-                """, yearReport.getAverageYearlyProfit());
+                """, yearReport.averageYearlyProfit());
     }
 
     private static void showMonthsInfo() {
@@ -96,10 +88,10 @@ public class ConsoleInterface {
 
         var monthlyReports = reportsManager.getMonthlyReportsInformation();
         for (var monthReport : monthlyReports) {
-            var mostProfitable = monthReport.getMostProfitable();
-            var mostUnprofitable = monthReport.getMostUnprofitable();
-            String monthName = monthReport.getMonth().substring(0, 1).toUpperCase()
-                    + monthReport.getMonth().substring(1);
+            var mostProfitable = monthReport.mostProfitable();
+            var mostUnprofitable = monthReport.mostUnprofitable();
+            String monthName = monthReport.month().substring(0, 1).toUpperCase()
+                    + monthReport.month().substring(1);
             System.out.printf("""
                 
                 🗓 %s:
@@ -107,8 +99,8 @@ public class ConsoleInterface {
                 📉 Самая большая трата: %s, расход: %s
                 
                 """, monthName,
-                    mostProfitable.getName(), mostProfitable.getSum(),
-                    mostUnprofitable.getName(), mostUnprofitable.getSum());
+                    mostProfitable.name(), mostProfitable.sum(),
+                    mostUnprofitable.name(), mostUnprofitable.sum());
         }
         System.out.println(ANSI_GREEN + "Вывод окончен." + ANSI_RESET);
     }
@@ -134,7 +126,7 @@ public class ConsoleInterface {
         }
 
         for (var mistake : mistakeMonths) {
-            System.out.printf(ANSI_RED + "Ошибка в месяце %s\n" + ANSI_RESET, mistake.getMonth());
+            System.out.printf(ANSI_RED + "Ошибка в месяце %s\n" + ANSI_RESET, mistake.month());
         }
     }
 
