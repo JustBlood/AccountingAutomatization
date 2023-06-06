@@ -94,9 +94,6 @@ public class ReportsManager {
     }
 
     public void readMonthlyReports() throws IOException {
-        // no need to read again
-        if (isMonthlyReportsRead) { return; }
-
         var files = folder.listFiles();
         if (Objects.isNull(files)) {
             throw new IOException("There is no files in directory.");
@@ -124,8 +121,6 @@ public class ReportsManager {
     }
 
     public void readYearReport() throws IOException {
-        if (isYearReportRead) { return; }
-
         if (Objects.isNull(folder.listFiles())) {
             throw new IOException("There is no files in directory.");
         }
@@ -217,15 +212,21 @@ public class ReportsManager {
                 averageExpense);
     }
 
+    public boolean isMonthlyReportsRead() {
+        return isMonthlyReportsRead;
+    }
+
+    public boolean isYearReportRead() {
+        return isYearReportRead;
+    }
+
     private String getMonthName(int month) {
         return Month.of(month).getDisplayName(
                 TextStyle.FULL_STANDALONE, Locale.of("ru"));
     }
 
     private String readFile(String path) throws IOException {
-        String content = Files.readString(Path.of(path));
-        isMonthlyReportsRead = true;
-        return content;
+        return Files.readString(Path.of(path));
     }
 
     private MonthReportModel deserializeMonthReport(String fileContent, String fileName) {
